@@ -1,0 +1,14 @@
+import ExchangeBase from './exchangeBase.mjs';
+
+class Bitget extends ExchangeBase {
+  constructor() {
+    super('Bitget');
+  }
+
+  async getSymbolAndUpMapping() {
+    // 这里是 Bitget 特有的实现
+    console.log('Fetching symbol and up mapping for Bitget...' + this.name);
+  }
+}
+
+export default Bitget;

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "axios-https-proxy-fix": "^0.17.1",
+    "crypto-js": "^4.2.0"
+  }
+}
