@@ -9,7 +9,38 @@ class ExchangeBase {
   setApiInfo(apiInfo) {
     this.apiInfo = apiInfo;
   }
+  clearBody = (body)=>{
+    let rst = {};
+    for(let key in body){
+        if(body[key] != null){
+            rst[key] = body[key];
+        }
+    }
+    return rst;
+  }
 
+  symbolConvert(baseSymbol,isFutures = true) {
+    return baseSymbol;
+  }
+
+  async getPositions(symbol){
+    throw new Error('Method not implemented: getPositions');
+  }
+  closePositionGetProfit(symbol) {  
+    throw new Error('Method not implemented: closePositionGetProfit');
+  }
+  async createOrder(symbol,side,orderType,size,price){
+    throw new Error('Method not implemented: createOrder');
+  }
+  async createOrderMax(symbol,side,orderType,size,price,max) {
+    throw new Error('Method not implemented: createOrderMax');
+  }
+  async getOrderInfo(symbol,orderId) {
+    throw new Error('Method not implemented: getOrderInfo');
+  }
+  async cancelOrder(symbol,orderId){
+    throw new Error('Method not implemented: cancelOrder');
+  }
   async getBalance(ccy) {
     throw new Error('Method not implemented: getBalance');
   }

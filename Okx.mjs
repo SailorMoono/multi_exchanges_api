@@ -19,7 +19,8 @@ class Okx extends ExchangeBase {
   }
   async getKline(symbol,period) {
     const URI = `/api/v5/market/candles`
-    let rst = await this.get(baseUrl + URI + '?' + `instId=${symbol}&bar=${period}&limit=100`,null);
+   // let rst = await this.get(baseUrl + URI + '?' + `instId=${symbol}&bar=${period}&limit=100`,null);
+    await this.safeExecute(this.get(baseUrl + URI + '?' + `instId=${symbol}&bar=${period}&limit=100`,null), 'getKline');
     return rst;
   }
 

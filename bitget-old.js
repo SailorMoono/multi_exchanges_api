@@ -122,7 +122,6 @@ class Okx {
         let rst = await this.basePost(URI,body)
         await this.sendLev(symbol,lev)
         return rst;
-
     }
 
     //设置保证金模式
@@ -345,10 +344,9 @@ class Okx {
     //张币转换
     async convert(symbol,type,sz,px){
         const URI = `/api/v5/public/convert-contract-coin`
-        
         let rst = await this.baseGet(URI,'instId=' + symbol + '&' + 'type=' + type + '&' + 'sz=' + sz + '&' + 'px=' + px + '&' + 'unit=usds');
         return rst;
-}
+    }
 
     async getPositions(symbol) {
         const URI = `/api/mix/v1/position/singlePosition-v2`
