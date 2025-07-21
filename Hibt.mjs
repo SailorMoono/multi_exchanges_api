@@ -84,7 +84,7 @@ class Hibt extends ExchangeBase {
             price: price + "",
            // timestamp: Date.now()
         }
-        console.log('createOrder body:', body)
+       // console.log('createOrder body:', body)
 
         let rst = await this.basePost(URI,this.clearBody(body))
         if(rst.state){
@@ -92,8 +92,8 @@ class Hibt extends ExchangeBase {
         }
         return rst;
 
-        //当前只实现了一键全平
-      }else if(side == "close_long" || side == "close_short" || side == "close_all"){
+       
+      }else if( side == "close_all"){
        
         const URI = `/v2/order/closeAll`
         let body = {
@@ -112,9 +112,41 @@ class Hibt extends ExchangeBase {
           }
         }
         return rst;
+      }else if(side == "close_long" || side == "close_short" ){
+        let pos = (await this.getPositions(symbol)).data
+        console.log('createOrder close pos:', pos)
+        for(let p of pos){
+          if(p.holdSide == "long"){
+            let rst = await this.baseClose(p.available,p.positionID)
+             if(rst.state){
+                rst.data = rst.data.data;
+                rst.data.orderId = rst.data.orderID;
+              }
+              return rst;
+          }else{
+            let rst = await this.baseClose(p.available,p.positionID)
+            if(rst.state){
+              rst.data = rst.data.data;
+              rst.data.orderId = rst.data.orderID;
+            }
+             return rst;
+          }
+        }
       }
 
       
+  }
+  //hibt 平仓
+  async baseClose(amount,positionID){
+    const URI = `/v2/order/close`
+    let body = {
+      type: 2,
+      // price:0.01 + "",
+      amount: amount + "",
+      positionID,
+      timestamp: Date.now()
+    }
+    return this.basePost(URI,this.clearBody(body))
   }
 
   async createOrderMax(symbol,side,orderType,size,price,max,leverage) {
@@ -162,7 +194,7 @@ async getPositions(symbol) {
     if(rst.state){
       rst.data = rst.data.data;
       for(let p of rst.data){
-        p.holdSide = p.side == 0 ? "long" : "short";
+        p.holdSide = p.side == 1 ? "long" : "short";
         p.available = parseFloat(p.amount);
       }
     }
@@ -170,21 +202,55 @@ async getPositions(symbol) {
 }
 
 //完全平仓获取利润
-async closePositionGetProfit (symbol,posSide) {
+async closePositionGetProfit (symbol,posSide,amount) {
       let pos = await this.getPositions(symbol)
       let orders = []
       // console.log(pos.state)
       if(pos.state){
           pos = pos.data;
-          console.log('closePositionGetProfit pos:', pos)
+          //console.log('closePositionGetProfit pos:', pos)
           for(let p of pos){
               if(p.available != 0 && (posSide.toUpperCase() == p.holdSide.toUpperCase() || posSide.toUpperCase() == "ALL")){
                   let side = "close_short"
                   if(p.holdSide == "long"){
                       side = "close_long"
                   }
-                  let or = await this.createOrder(symbol,side,"market",p.available,null)
-                  orders.push(or)
+                  if(posSide.toUpperCase() == "ALL"){
+                    let or = await this.createOrder(symbol,side,"market",p.available,null)
+                    orders.push(or)
+                  }else{
+                    let rst = null;
+                     if(p.holdSide == "long"){
+                        if(amount && amount > 0 && amount < p.available){
+                          rst = await this.baseClose(amount,p.positionID)
+                        }else{
+                          rst = await this.baseClose(p.available,p.positionID)
+                        }
+                        
+                        
+                        console.log('closePositionGetProfit baseClose rst:', rst) 
+                        if(rst.state){
+                            rst.data = rst.data.data;
+                            rst.data.orderId = rst.data.orderID;
+                        }
+                        
+                      }else{
+                        if(amount && amount > 0 && amount < p.available){
+                          rst = await this.baseClose(amount,p.positionID)
+                        }else{
+                          rst = await this.baseClose(p.available,p.positionID)
+                        }
+                        console.log('closePositionGetProfit baseClose rst:', rst)
+                        if(rst.state){
+                          rst.data = rst.data.data;
+                          rst.data.orderId = rst.data.orderID;
+                        }
+                      
+                      }
+                    
+                    orders.push(rst)
+                  }
+                
               }
           }
       }else{
@@ -192,6 +258,7 @@ async closePositionGetProfit (symbol,posSide) {
       }
       let profit = 0;
       for(let order of orders){
+        console.log('closePositionGetProfit order:', order)
         let info;
           for(let i = 0;i <= 20;i++ ){
               info = await this.getOrderInfo(symbol,order.data.orderId)

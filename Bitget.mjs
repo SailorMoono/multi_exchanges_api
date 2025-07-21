@@ -99,7 +99,7 @@ async getPositions(symbol) {
 }
 
 //完全平仓获取利润
-async closePositionGetProfit (symbol,posSide) {
+async closePositionGetProfit (symbol,posSide,amount) {
       let pos = await this.getPositions(symbol)
       let orders = []
       // console.log(pos.state)
@@ -111,8 +111,14 @@ async closePositionGetProfit (symbol,posSide) {
                   if(p.holdSide == "long"){
                     side = "close_long"
                   }
-                  let or = await this.createOrder(symbol,side,"market",p.available,null,1)
-                  orders.push(or)
+                  if(amount && amount > 0 && amount < p.available){
+                    let or = await this.createOrder(symbol,side,"market",amount,null,1)
+                    orders.push(or)
+                  }else{
+                    let or = await this.createOrder(symbol,side,"market",p.available,null,1)
+                    orders.push(or)
+                  }
+                 
               }
           }
       }else{
