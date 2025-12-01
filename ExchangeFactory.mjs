@@ -6,6 +6,7 @@ class ExchangeFactory {
       Bitget: () => import('./Bitget.mjs'),
       Okx: () => import('./Okx.mjs'),
       Hibt: () => import('./Hibt.mjs'),
+   //   Binance: () => import('./Binance.mjs'),
     };
   }
 

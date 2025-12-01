@@ -24,15 +24,17 @@ class Bitget extends ExchangeBase {
   symbolConvert(baseSymbol,isFutures = true) {
     let coin01 = baseSymbol.split('_')[0].toUpperCase();
     let coin02 = baseSymbol.split('_')[1].toUpperCase();
-    return isFutures ? `${coin01}${coin02}_UMCBL` : `${coin01}_${coin02}`;
+    // return isFutures ? `${coin01}${coin02}_UMCBL` : `${coin01}_${coin02}`;
+    return isFutures ? `${coin01}${coin02}` : `${coin01}${coin02}`;
   }
 
   async setLev(symbol,lev){
-    const URI = `/api/mix/v1/account/setLeverage`
+    const URI = `/api/v2/mix/account/set-leverage`
 
     let body = {
         symbol,
         leverage:lev,
+        productType:"USDT-FUTURES",
         marginCoin:"USDT"
     }
     let rst = await this.basePost(URI,body)
@@ -42,20 +44,49 @@ class Bitget extends ExchangeBase {
     return rst;
   }
 
+  //划转
+
+  async transfer(symbol,type = 1,amount,coin = "USDT") {
+    let fromType = "";
+    let toType = "";
+    if(type == 1){
+      fromType = "mix";
+      toType = "spot";
+    }
+    const URI = `/api/spot/v1/wallet/transfer-v2`
+    let body = {
+        fromType,
+        toType,
+        amount,
+        coin
+    }
+    let rst = await this.basePost(URI,this.clearBody(body))
+    return rst;
+  }
 
   async createOrder(symbol,side,orderType,size,price,leverage) {
       if(size != null){
-          size = parseFloat(size).toFixed(0);
+        size = parseFloat(size).toFixed(0);
       }
-      const URI = `/api/mix/v1/order/placeOrder`
+      let sides = side.split("_")
+      let tside = "buy"
+      if(sides[1] == "short"){
+        tside = "sell"
+      }
+      let tradeSide = sides[0]
+      const URI = `/api/v2/mix/order/place-order`
       let body = {
-          symbol,
-          side:side,
-          marginCoin:'USDT',
-          orderType,
-          timeInForceValue:"normal",
-          size,
-          price,
+        symbol,
+        tradeSide,
+        side:tside,
+
+        marginCoin:'USDT',
+        orderType,
+        timeInForceValue:"normal",
+        productType:'USDT-FUTURES',
+        marginMode:"crossed",
+        size,
+        price,
       }
       let rst = await this.basePost(URI,this.clearBody(body))
       return rst;
@@ -90,8 +121,8 @@ async getOrderInfo(symbol,orderId) {
 }
 
 async getPositions(symbol) {
-    const URI = `/api/mix/v1/position/singlePosition-v2`
-    let rst = await this.baseGet(URI,'symbol=' + symbol + `&marginCoin=USDT`)
+    const URI = `/api/v2/mix/position/single-position`
+    let rst = await this.baseGet(URI,'symbol=' + symbol + `&marginCoin=USDT&productType=USDT-FUTURES`);
     if(rst.state){
       rst.data = rst.data.data;
     }
@@ -139,13 +170,9 @@ async closePositionGetProfit (symbol,posSide,amount) {
 
 
   async getBalance(coin) {
-    const URI = `/api/mix/v1/account/accounts`
-    let rst = await this.baseGet(URI,`productType=umcbl`);
+    const URI = `/api/v2/mix/account/accounts`
+    let rst = await this.baseGet(URI,`productType=USDT-FUTURES`);
     if(rst.state){
-      // console.log('Bitget Balance Data:', rst.data);
-      // let available = parseFloat(rst.data.data[0].available);
-      // let equity = parseFloat(rst.data.data[0].equity);
-
       rst.data = rst.data.data[0];
     }
     return rst;

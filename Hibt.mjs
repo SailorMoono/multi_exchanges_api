@@ -35,7 +35,7 @@ class Hibt extends ExchangeBase {
     const URI = `/v2/account/setLeverage`
     const body = {
       symbol,
-      leverage: lev,
+      leverage: parseInt(lev),
       timestamp: Date.now()
     }
 
@@ -84,7 +84,7 @@ class Hibt extends ExchangeBase {
             price: price + "",
            // timestamp: Date.now()
         }
-       // console.log('createOrder body:', body)
+       console.log('createOrder body:', body)
 
         let rst = await this.basePost(URI,this.clearBody(body))
         if(rst.state){
