@@ -115,8 +115,8 @@ class Bitget extends ExchangeBase {
     return rst;
 }
 async getOrderInfo(symbol,orderId) {
-    const URI = `/api/mix/v1/order/detail`
-    let rst = await this.baseGet(URI,`symbol=${symbol}&orderId=${orderId}`);
+    const URI = `/api/v2/mix/order/detail`
+    let rst = await this.baseGet(URI,`symbol=${symbol}&orderId=${orderId}&productType=USDT-FUTURES`);
     return rst;
 }
 
@@ -160,8 +160,8 @@ async closePositionGetProfit (symbol,posSide,amount) {
           for(let i = 0;i <= 20;i++ ){
               let info = await this.getOrderInfo(symbol,order.data.data.orderId)
               if(info.data.data.state == "filled"){
-                  profit += (parseFloat(info.data.data.totalProfits) + parseFloat(info.data.data.fee) * 2)
-                  break
+                profit += (parseFloat(info.data.data.totalProfits) + parseFloat(info.data.data.fee) * 2)
+                break
               }
           }
       }
